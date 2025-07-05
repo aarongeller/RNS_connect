@@ -76,7 +76,7 @@ timevec = samplevec./srate;
 
 % compute gc if necessary
 if overwrite_data
-    if ~exist(datapath, 'file')
+    if ~exist(datapath, 'file') || overwrite_all_data
         gc_info.files = {};
         gc_info.data = {};
 
