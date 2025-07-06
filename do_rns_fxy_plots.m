@@ -20,6 +20,11 @@ if ~exist(backwarddir, 'dir')
     mkdir(backwarddir);
 end
 
+powtfsdir = fullfile(figsdir, 'powtfs');
+if ~exist(powtfsdir, 'dir')
+    mkdir(powtfsdir);
+end
+
 % backwardthreshdir = fullfile(figsdir, 'backward_thresh');
 % if ~exist(backwardthreshdir, 'dir')
 %     mkdir(backwardthreshdir);
@@ -54,22 +59,28 @@ tic;
 %                         'showWorkerProgress', true, 'title', ...
 %                         'Plotting Forward Connectivity');
 
-elecs = size(gc_info{1}.Fxy, 1);
+numchans = size(gc_info{1}.tfs_pow, 1);
+elecs = size(gc_info{1}.Fxy, 1); % actually the # of pairs
 freqs = size(gc_info{1}.Fxy, 2);
 timepts = size(gc_info{1}.Fxy, 3);
 baseline_timepts = size(gc_info{1}.Fxy_baseline, 3);
 
 RowNames = gc_info{1}.channel_names;
 
+allvals_tfs = nan(numchans, length(gc_info), freqs, timepts);
 allvals_Fxy = nan(elecs, length(gc_info), freqs, timepts);
 allvals_Fyx = nan(elecs, length(gc_info), freqs, timepts);
+meanvals_tfs = nan(elecs, freqs, timepts);
 meanvals_Fxy = nan(elecs, freqs, timepts);
 meanvals_Fyx = nan(elecs, freqs, timepts);
+baselinevals_tfs = nan(numchans, length(gc_info), freqs, baseline_timepts);
 baselinevals_Fxy = nan(elecs, length(gc_info), freqs, baseline_timepts);
 baselinevals_Fyx = nan(elecs, length(gc_info), freqs, baseline_timepts);
+baselinemeans_tfs = nan(elecs, freqs, baseline_timepts);
 baselinemeans_Fxy = nan(elecs, freqs, baseline_timepts);
 baselinemeans_Fyx = nan(elecs, freqs, baseline_timepts);
 
+zvals_tfs = nan(size(meanvals_Fxy));
 zvals_Fxy = nan(size(meanvals_Fxy));
 zvals_Fyx = nan(size(meanvals_Fxy));
 iozzvals_Fxy = nan(size(meanvals_Fxy));
@@ -83,6 +94,13 @@ for i=1:length(gc_info) % for every file,
         allvals_Fyx(j,i,:,:) = gc_info{i}.Fyx(j,:,:);
         baselinevals_Fxy(j,i,:,:) = gc_info{i}.Fxy_baseline(j,:,:);
         baselinevals_Fyx(j,i,:,:) = gc_info{i}.Fyx_baseline(j,:,:);
+    end
+end
+
+for i=1:length(gc_info) % for every file,
+    for j=1:numchans
+        allvals_tfs(j,i,:,:) = gc_info{i}.tfs_pow(j,:,:);
+        baselinevals_tfs(j,i,:,:) = gc_info{i}.tfs_pow_baseline(j,:,:);
     end
 end
 
@@ -104,6 +122,12 @@ for i=1:elecs
     end
 end
 
+for i=1:numchans
+    meanvals_tfs(i,:,:) = squeeze(mean(allvals_tfs(i,:,:,:), "omitnan"));
+    baselinemeans_tfs(i,:,:) = squeeze(mean(baselinevals_tfs(i,:,:,:), "omitnan"));
+    zvals_tfs(i,:,:) = do_zscore(squeeze(meanvals_tfs(i,:,:)), squeeze(baselinemeans_tfs(i,:,:)));
+end
+
 channel_names = {};
 for i=1:length(gc_info{1}.channel_names)
     channel_names{end+1} = gc_info{1}.channel_names{i}{1};
@@ -112,6 +136,20 @@ end
 channel_names_long = {channel_names{2:4} channel_names{3:4} channel_names{4}};
 
 if overwrite_all_figs
+    for i=1:numchans
+        figname = [sprintf('%03d', i) '_tfs_' channel_names{i} '.png'];
+        figpath = fullfile(powtfsdir, figname);
+        titstr = [channel_names_long{i} ' TFS'];
+        do_tfs_fig(squeeze(meanvals_tfs(i,:,:)), tfsclim, gc_info{1}.freqs, ...
+                   gc_info{1}.srate, titstr, figpath, timevec);
+
+        zfigname = ['z_' sprintf('%03d', i) '_tfs_' channel_names{i} '.png'];
+        zfigpath = fullfile(powtfsdir, zfigname);
+        ztitstr = ['Z-Score ' channel_names_long{i} ' TFS'];
+        do_tfs_fig(squeeze(zvals_tfs(i,:,:)), [-10 10], gc_info{1}.freqs, gc_info{1}.srate, ...
+                   ztitstr, zfigpath, timevec);
+    end
+
     for i=1:elecs
         if i<4
             seedstr = channel_names{1};
