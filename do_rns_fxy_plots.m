@@ -139,13 +139,13 @@ if overwrite_all_figs
     for i=1:numchans
         figname = [sprintf('%03d', i) '_tfs_' channel_names{i} '.png'];
         figpath = fullfile(powtfsdir, figname);
-        titstr = [channel_names_long{i} ' TFS'];
+        titstr = [channel_names{i} ' TFS'];
         do_tfs_fig(squeeze(meanvals_tfs(i,:,:)), tfsclim, gc_info{1}.freqs, ...
                    gc_info{1}.srate, titstr, figpath, timevec);
 
         zfigname = ['z_' sprintf('%03d', i) '_tfs_' channel_names{i} '.png'];
         zfigpath = fullfile(powtfsdir, zfigname);
-        ztitstr = ['Z-Score ' channel_names_long{i} ' TFS'];
+        ztitstr = ['Z-Score ' channel_names{i} ' TFS'];
         do_tfs_fig(squeeze(zvals_tfs(i,:,:)), [-10 10], gc_info{1}.freqs, gc_info{1}.srate, ...
                    ztitstr, zfigpath, timevec);
     end
