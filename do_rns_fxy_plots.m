@@ -70,7 +70,7 @@ RowNames = gc_info{1}.channel_names;
 allvals_tfs = nan(numchans, length(gc_info), freqs, timepts);
 allvals_Fxy = nan(elecs, length(gc_info), freqs, timepts);
 allvals_Fyx = nan(elecs, length(gc_info), freqs, timepts);
-meanvals_tfs = nan(elecs, freqs, timepts);
+meanvals_tfs = nan(numchans, freqs, timepts);
 meanvals_Fxy = nan(elecs, freqs, timepts);
 meanvals_Fyx = nan(elecs, freqs, timepts);
 baselinevals_tfs = nan(numchans, length(gc_info), freqs, baseline_timepts);
@@ -87,6 +87,8 @@ iozzvals_Fxy = nan(size(meanvals_Fxy));
 iozzvals_Fyx = nan(size(meanvals_Fxy));
 noniozzvals_Fxy = nan(size(meanvals_Fxy));
 noniozzvals_Fyx = nan(size(meanvals_Fxy));
+cluster_thresh_Fxy = nan(size(meanvals_Fxy));
+cluster_thresh_Fyx = nan(size(meanvals_Fxy));
 
 for i=1:length(gc_info) % for every file,
     for j=1:elecs
@@ -119,6 +121,16 @@ for i=1:elecs
         baselinemeans_Fyx(i,:,:) = squeeze(mean(baselinevals_Fyx(i,:,:,:), "omitnan"));
         zvals_Fxy(i,:,:) = do_zscore(squeeze(meanvals_Fxy(i,:,:)), squeeze(baselinemeans_Fxy(i,:,:)));
         zvals_Fyx(i,:,:) = do_zscore(squeeze(meanvals_Fyx(i,:,:)), squeeze(baselinemeans_Fyx(i,:,:)));
+
+        % thresholded TFS analyses
+        shufflenum = 1000;
+
+        [ ~, ~, cluster_thresh_Fxy(i,:,:)] = ...
+            gc_shuffle_anal(allvals_Fxy, baselinevals_Fxy, i, shufflenum, squeeze(meanvals_Fxy(i,:,:)));
+
+        [ ~, ~, cluster_thresh_Fyx(i,:,:)] = ...
+            gc_shuffle_anal(allvals_Fyx, baselinevals_Fyx, i, shufflenum, squeeze(meanvals_Fyx(i,:,:)));
+
     end
 end
 
@@ -169,6 +181,12 @@ if overwrite_all_figs
         ztitstr = ['Z-Score ' seedstr ' -> ' channel_names_long{i}];
         do_tfs_fig(squeeze(zvals_Fxy(i,:,:)), zclim, gc_info{1}.freqs, gc_info{1}.srate, ...
                    ztitstr, zfigpath, timevec);
+
+        threshfigname = ['thresh_' sprintf('%03d', i) '_' seedstr '_' channel_names_long{i} '.png'];
+        threshfigpath = fullfile(forwarddir, threshfigname);
+        titstr = [seedstr ' -> ' channel_names_long{i}];
+        do_tfs_fig(squeeze(cluster_thresh_Fxy(i,:,:)), tfsclim, gc_info{1}.freqs, ...
+                   gc_info{1}.srate, titstr, threshfigpath, timevec);
         
             % pause(100/total);
             % ppm.increment();
@@ -201,6 +219,13 @@ if overwrite_all_figs
         ztitstr = ['Z-Score ' channel_names_long{i} ' -> ' seedstr];
         do_tfs_fig(squeeze(zvals_Fyx(i,:,:)), zclim, gc_info{1}.freqs, gc_info{1}.srate, ...
                    ztitstr, zfigpath, timevec);
+
+        threshfigname = ['thresh_' sprintf('%03d', i) '_' channel_names_long{i}  '_' seedstr '.png'];
+        threshfigpath = fullfile(backwarddir, threshfigname);
+        titstr = [seedstr ' -> ' channel_names_long{i}];
+        do_tfs_fig(squeeze(cluster_thresh_Fyx(i,:,:)), tfsclim, gc_info{1}.freqs, ...
+                   gc_info{1}.srate, titstr, threshfigpath, timevec);
+
         % pause(100/total);
         %    ppm.increment();
 
