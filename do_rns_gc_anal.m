@@ -42,13 +42,18 @@ switch subj
   case 'AAB'
     duration_s = 30;
     seedstr = 'LCM2';
-    sz_onset_s = [30 35 ...
+    sz_onset_s = [28.8 30 27.4 29.0 28.9 29.4 28.6 ...
                  ];
     sz_offset_s = nan;
     if strcmp(cond, 'onset')
         duration_s = 20;
         eegfiles = { 'MatDir/AAB_133164069519770000.mat' ...
                      'MatDir/AAB_133165770759930000.mat' ...
+                     'MatDir/AAB_133165771039530000.mat' ...
+                     'MatDir/AAB_133198189502350000.mat' ...
+                     'MatDir/AAB_133198189779600000.mat' ...
+                     'MatDir/AAB_133198190058160000.mat' ...
+                     'MatDir/AAB_133227022270030000.mat' ...
                    };
         % ioz = {'LPT5', 'LPT6', 'LPT7', 'LPT8'};
     elseif strcmp(cond, 'offset')
@@ -126,13 +131,4 @@ if overwrite_all_figs | overwrite_ioz_figs
     do_rns_fxy_plots(gc_info.data, figsdir, tfsclim, zclim, timevec, ...
                  overwrite_all_figs, overwrite_ioz_figs);
     system(['python make_rns_gc_pdf.py ' subj ' granger_' cond]);
-end
-
-function m = ecog_struct_to_mat(st)
-numchans = length(st);
-samples = length(st{1});
-m = zeros(numchans, samples);
-
-for i=1:numchans
-    m(i,:) = st{i};
 end
