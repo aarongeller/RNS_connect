@@ -222,7 +222,7 @@ if overwrite_all_figs
 
         threshfigname = ['thresh_' sprintf('%03d', i) '_' channel_names_long{i}  '_' seedstr '.png'];
         threshfigpath = fullfile(backwarddir, threshfigname);
-        titstr = [seedstr ' -> ' channel_names_long{i}];
+        titstr = [channel_names_long{i} ' -> ' seedstr];
         do_tfs_fig(squeeze(cluster_thresh_Fyx(i,:,:)), tfsclim, gc_info{1}.freqs, ...
                    gc_info{1}.srate, titstr, threshfigpath, timevec);
 
