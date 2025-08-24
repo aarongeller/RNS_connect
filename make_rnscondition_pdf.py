@@ -7,8 +7,8 @@ subjname = sys.argv[1]
 condition = sys.argv[2]
 condition_parts = condition.split("_")
 condition_str = "\_".join(condition_parts)
-subjdir = os.path.join("data", subjname)
-figspath = os.path.join(subjdir, "figs", condition)
+subjdir = os.path.join("analyses", subjname)
+figspath = os.path.join(subjdir, "figs", "raw_"+condition)
 
 texfname = os.path.join(subjdir, subjname + "_" + condition + ".tex")
 texf = open(texfname, 'w')

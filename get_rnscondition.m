@@ -8,18 +8,18 @@ end
 
 tic;
 
-subjdir = fullfile('data', subj);
+datadir = fullfile('data', subj);
 
-figsdir = fullfile(subjdir, 'figs', condition);
+figsdir = fullfile('analyses', subj, 'figs', ['raw_' condition]);
 if ~exist(figsdir, 'dir')
     mkdir(figsdir);
 end
 
 % get spreadsheet name
-csvname = dir(fullfile(subjdir, '*.csv'));
+csvname = dir(fullfile(datadir, '*.csv'));
 
 % open spreadsheet
-T = readtable(fullfile(subjdir, csvname.name));
+T = readtable(fullfile(datadir, csvname.name));
 
 % get column for LEs
 ec_colnum = find(strcmp(T.Properties.VariableNames, 'ECoGTrigger'));
@@ -35,7 +35,7 @@ for i=1:length(rowinds)
     file_prefix = [subj '_' fname_parts{1}];
     cond_file = [file_prefix '.mat'];
     % load each file for that type
-    load(fullfile(subjdir, 'MatDir', cond_file));
+    load(fullfile(datadir, 'MatDir', cond_file));
 
     figure('visible','off');
     timevec = (1:length(ECoG_data{1}))./ECoG_hdr.SamplingRate;
